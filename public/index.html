@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Nubexcloud — Secure Payment</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f8fafc;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 16px;}
+.container{width:100%;max-width:520px;background:#fff;border-radius:12px;box-shadow:0 5px 24px rgba(0,0,0,.09);overflow:hidden;}
+.top-strip{background:linear-gradient(135deg,#f97316,#ea580c);padding:16px 22px;display:flex;align-items:center;justify-content:space-between;}
+.brand{font-size:20px;font-weight:800;color:#fff;letter-spacing:-.3px;}
+.brand span{opacity:.75;font-size:12px;font-weight:400;display:block;margin-top:1px;}
+.ssl-badge{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:4px 10px;font-size:10px;font-weight:700;color:#fff;}
+.ldot{width:5px;height:5px;border-radius:50%;background:#4ade80;animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.announce{background:#fff7ed;border-bottom:1px solid rgba(249,115,22,.15);padding:9px 18px;display:flex;align-items:flex-start;gap:9px;}
+.ann-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.ann-title{font-size:12px;font-weight:700;color:#1f2937;margin-bottom:1px;}
+.ann-sub{font-size:11px;color:#6b7280;line-height:1.35;}
+.ann-flags{display:flex;gap:5px;margin-top:5px;}
+.af{display:inline-flex;align-items:center;gap:3px;background:#fff;border:1.5px solid rgba(249,115,22,.25);border-radius:6px;padding:2px 7px;font-size:10px;font-weight:700;color:#ea580c;}
+.card-body{padding:16px 20px 20px;}
+.env-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.pg-title{font-size:16px;font-weight:800;color:#111827;letter-spacing:-.3px;}
+.pg-title em{color:#f97316;font-style:normal;}
+.env-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;}
+.env-pill.sb{background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;}
+.env-pill.lv{background:#dcfce7;color:#15803d;border:1px solid #a7f3d0;}
+.sec-lbl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:#9ca3af;margin-bottom:8px;}
+.presets{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px;}
+.preset{position:relative;border:2px solid #e5e7eb;background:#f9fafb;border-radius:9px;padding:9px 4px 7px;text-align:center;cursor:pointer;transition:border-color .14s,background .14s,transform .1s;user-select:none;}
+.preset:hover{border-color:#f97316;background:#fff7ed;transform:translateY(-1px);}
+.preset.on{border-color:#f97316;background:#fff7ed;box-shadow:0 0 0 3px rgba(249,115,22,.13);}
+.pbadge{position:absolute;top:-7px;left:50%;transform:translateX(-50%);background:#f97316;color:#fff;font-size:8px;font-weight:800;padding:1px 6px;border-radius:20px;white-space:nowrap;}
+.pcur{font-size:9px;font-weight:700;color:#9ca3af;letter-spacing:.04em;}
+.pval{font-size:17px;font-weight:800;color:#1f2937;letter-spacing:-.4px;line-height:1.1;margin:2px 0;}
+.chk{position:absolute;top:4px;right:4px;width:13px;height:13px;border-radius:50%;background:#f97316;color:#fff;font-size:7px;font-weight:900;display:none;align-items:center;justify-content:center;}
+.preset.on .chk{display:flex;}
+.preset.on .pval{color:#ea580c;}
+.preset.on .pcur{color:#f97316;}
+.custom-section{border:2px dashed #d1d5db;border-radius:9px;padding:11px 14px;margin-bottom:12px;}
+.custom-label{font-size:12px;font-weight:700;color:#374151;margin-bottom:7px;}
+.inp-wrap{position:relative;}
+.inp-pfx{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:700;color:#9ca3af;pointer-events:none;}
+.custom-inp{width:100%;padding:9px 11px 9px 26px;font-size:17px;font-weight:700;border:1.5px solid #d1d5db;border-radius:7px;outline:none;color:#111827;background:#fff;transition:border-color .14s,box-shadow .14s;-webkit-appearance:none;}
+.custom-inp:focus{border-color:#f97316;box-shadow:0 0 0 3px rgba(249,115,22,.12);}
+.custom-inp::placeholder{color:#d1d5db;font-weight:400;font-size:13px;}
+.fx-section{margin-bottom:12px;}
+.fx-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;}
+.fx-title{font-size:10.5px;font-weight:700;color:#374151;}
+.fx-live{display:flex;align-items:center;gap:4px;font-size:9.5px;font-weight:600;color:#15803d;}
+.fx-ldot{width:5px;height:5px;border-radius:50%;background:#16a34a;animation:blink 1.5s infinite;}
+.fx-cards{display:flex;gap:7px;}
+.fx-card{flex:1;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;}
+.fx-l{display:flex;align-items:center;gap:7px;}
+.fx-flag{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.fx-flag.aed{background:linear-gradient(135deg,#dcfce7,#a7f3d0);}
+.fx-flag.eur{background:linear-gradient(135deg,#dbeafe,#bfdbfe);}
+.fx-cur{font-size:11.5px;font-weight:700;color:#111827;}
+.fx-name{font-size:9px;color:#9ca3af;}
+.fx-r{text-align:right;}
+.fx-amt{font-size:13px;font-weight:800;color:#1f2937;}
+.fx-rate{font-size:8.5px;color:#9ca3af;margin-top:1px;}
+.fx-empty{font-size:11px;color:#9ca3af;text-align:center;padding:8px 0;}
+.fx-spin{width:7px;height:7px;border:1.5px solid #d1d5db;border-top-color:#f97316;border-radius:50%;animation:sp .8s linear infinite;display:inline-block;vertical-align:middle;margin-right:3px;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.fx-ts{font-size:8.5px;color:#d1d5db;text-align:right;margin-top:4px;}
+.divider{height:1px;background:#f3f4f6;margin:0 0 12px;}
+.total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.total-label{font-size:14px;font-weight:700;color:#374151;}
+.total-val{font-size:26px;font-weight:800;color:#16a34a;letter-spacing:-.5px;}
+.currency-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:#9ca3af;margin-bottom:8px;}
+.pay-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
+.pay-btn{padding:12px 6px;border:none;border-radius:9px;font-size:13px;font-weight:700;color:#fff;font-family:Arial,sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:all .14s;}
+.pay-btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;}
+.pay-btn.usd{background:linear-gradient(135deg,#f97316,#ea580c);box-shadow:0 3px 12px rgba(249,115,22,.35);}
+.pay-btn.usd:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(249,115,22,.42);}
+.pay-btn.aed{background:linear-gradient(135deg,#16a34a,#15803d);box-shadow:0 3px 12px rgba(22,163,74,.32);}
+.pay-btn.aed:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(22,163,74,.38);}
+.pay-btn.eur{background:linear-gradient(135deg,#2563eb,#1d4ed8);box-shadow:0 3px 12px rgba(37,99,235,.32);}
+.pay-btn.eur:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(37,99,235,.38);}
+.btn-flag{font-size:16px;line-height:1;}
+.btn-label{font-size:10.5px;font-weight:800;letter-spacing:.04em;opacity:.9;}
+.btn-amount{font-size:14px;font-weight:800;letter-spacing:-.2px;}
+.spin-w{width:14px;height:14px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .65s linear infinite;}
+.err-box{background:#fee2e2;border:1px solid #fecaca;border-radius:8px;padding:10px 13px;font-size:12.5px;color:#dc2626;margin-bottom:12px;line-height:1.5;}
+.err-box strong{display:block;margin-bottom:2px;}
+.trust{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:8px;}
+.tb{font-size:10px;color:#9ca3af;font-weight:500;}
+.chips{display:flex;justify-content:center;gap:4px;flex-wrap:wrap;}
+.chip{background:#f9fafb;border:1px solid #e5e7eb;border-radius:4px;padding:2px 7px;font-size:9px;font-weight:700;color:#6b7280;}
+.pwr{text-align:center;font-size:9.5px;color:#9ca3af;margin-top:7px;}
+.pwr strong{color:#6b7280;}
+.status-overlay{position:fixed;inset:0;z-index:200;background:rgba(248,250,252,.97);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+.suc-card{background:#fff;border-radius:14px;box-shadow:0 5px 28px rgba(0,0,0,.11);overflow:hidden;width:100%;max-width:460px;}
+.suc-top{background:linear-gradient(135deg,#059669,#10b981);padding:1.75rem 1.5rem;text-align:center;color:#fff;}
+.suc-ico{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.22);border:3px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto .9rem;}
+.suc-title{font-size:21px;font-weight:800;margin-bottom:4px;}
+.suc-sub{font-size:12.5px;opacity:.82;}
+.suc-body{padding:1.3rem 1.5rem;}
+.ref-box{background:#dbeafe;border:1px solid #bfdbfe;border-radius:9px;padding:10px 13px;display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem;gap:10px;}
+.ref-lbl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#2563eb;margin-bottom:2px;}
+.ref-val{font-size:12px;font-weight:700;color:#111827;font-family:monospace;word-break:break-all;}
+.copy-btn{padding:5px 12px;background:#2563eb;color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:Arial,sans-serif;}
+.copy-btn:hover{background:#1d4ed8;}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:1rem;}
+.info-card{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:10px;}
+.info-lbl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:3px;}
+.info-val{font-size:13px;font-weight:700;color:#111827;word-break:break-all;}
+.info-val.big{font-size:18px;color:#ea580c;}
+.suc-actions{display:flex;gap:7px;}
+.btn-p{flex:1;padding:11px;background:#f97316;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif;}
+.btn-p:hover{background:#ea580c;}
+.btn-s{flex:1;padding:11px;background:#fff;color:#374151;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:Arial,sans-serif;}
+.btn-s:hover{background:#f9fafb;}
+.can-wrap{text-align:center;padding:2.25rem 1.75rem;}
+.can-ico{width:60px;height:60px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto .9rem;}
+.can-title{font-size:19px;font-weight:800;color:#111827;margin-bottom:5px;}
+.can-sub{font-size:12.5px;color:#6b7280;margin-bottom:1.25rem;line-height:1.5;}
+.back-btn{padding:10px 24px;background:#f97316;color:#fff;border:none;border-radius:8px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif;}
+.back-btn:hover{background:#ea580c;}
+.loading-box{text-align:center;padding:2rem;color:#6b7280;}
+.big-spin{width:30px;height:30px;border:3px solid #e5e7eb;border-top-color:#f97316;border-radius:50%;animation:sp .8s linear infinite;margin:0 auto .75rem;}
+@media print{.suc-actions,.copy-btn{display:none!important;}}
+</style>
+</head>
+<body>
+
+<div class="container" id="mainCard">
+  <div class="top-strip">
+    <div class="brand">Nubexcloud<span>Secure Online Payment</span></div>
+    <div class="ssl-badge"><div class="ldot"></div>256-bit SSL</div>
+  </div>
+  <div class="announce">
+    <div class="ann-icon">🌍</div>
+    <div>
+      <div class="ann-title">Multi-Currency Payments Now Live</div>
+      <div class="ann-sub">Pay in your preferred currency — zero extra fees. All processing costs covered by Nubexcloud.</div>
+      <div class="ann-flags">
+        <div class="af">🇺🇸 USD</div><div class="af">🇦🇪 AED</div><div class="af">🇪🇺 EUR</div>
+      </div>
+    </div>
+  </div>
+  <div class="card-body" id="cardBody"></div>
+</div>
+
+<div class="status-overlay" id="statusOverlay"></div>
+
+<script>
+const SC  = window.__SERVER_CONFIG__ || {};
+const CFG = { sandbox: SC.sandbox !== undefined ? SC.sandbox : false };
+
+const PRESETS = [
+  {usd:1,badge:null},{usd:10,badge:null},{usd:15,badge:null},{usd:20,badge:null},
+  {usd:50,badge:null},{usd:100,badge:"Popular"},{usd:500,badge:"Best Value"},{usd:1000,badge:"Top Up"},
+];
+
+let FX = { AED:null, EUR:null, ts:null, loading:true };
+async function loadFX(){
+  try{
+    const ctrl=new AbortController();
+    const tid=setTimeout(()=>ctrl.abort(),5000);
+    const r=await fetch("https://open.er-api.com/v6/latest/USD",{signal:ctrl.signal});
+    clearTimeout(tid);
+    const d=await r.json();
+    if(d.rates){FX.AED=d.rates.AED;FX.EUR=d.rates.EUR;FX.ts=new Date();FX.loading=false;}
+  }catch{FX.AED=3.6725;FX.EUR=0.9210;FX.ts=new Date();FX.loading=false;}
+  render();
+}
+
+let S={preset:null,custom:"",stage:"idle",payingWith:null,errMsg:"",orderRef:null,orderData:null};
+
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function fd(n,d=2){return Number(n).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});}
+function selUSD(){if(S.preset!==null)return S.preset;const v=parseFloat(S.custom);return isNaN(v)||v<=0?0:v;}
+function toCents(usd,cur){
+  if(cur==="USD")return Math.round(usd*100);
+  if(cur==="AED")return Math.round(usd*(FX.AED||3.6725)*100);
+  if(cur==="EUR")return Math.round(usd*(FX.EUR||0.921)*100);
+  return Math.round(usd*100);
+}
+function btnAmt(usd,cur){
+  if(!usd)return "—";
+  if(cur==="USD")return "$"+fd(usd);
+  if(cur==="AED")return "AED "+fd(usd*(FX.AED||3.6725));
+  if(cur==="EUR")return "€"+fd(usd*(FX.EUR||0.921));
+}
+
+/* ── Safe fetch — handles HTML error pages ── */
+async function safeFetch(url,options){
+  let res;
+  try{ res=await fetch(url,options); }
+  catch(e){ throw new Error("Cannot reach payment server. Please check your connection."); }
+  const text=await res.text();
+  if(text.trim().startsWith("<")){
+    throw new Error("Payment server is not responding correctly. Please contact support.");
+  }
+  let data;
+  try{ data=JSON.parse(text); }
+  catch{ throw new Error("Unexpected server response. Please try again."); }
+  if(!res.ok) throw new Error(data.error||"Payment error ("+res.status+"). Please try again.");
+  return data;
+}
+
+async function fetchOrder(ref){
+  try{return await safeFetch("/api/order-status/"+encodeURIComponent(ref));}
+  catch{return null;}
+}
+
+async function doCreate(currency){
+  const usd=selUSD();
+  if(!usd)throw new Error("Please select or enter an amount.");
+  return await safeFetch("/api/create-payment",{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({amount:toCents(usd,currency),currency}),
+  });
+}
+
+async function pay(currency){
+  if(!selUSD())return;
+  S.stage="loading";S.payingWith=currency;S.errMsg="";render();
+  try{
+    const d=await doCreate(currency);
+    if(!d.paymentUrl)throw new Error("No payment URL received from gateway.");
+    S.stage="redirecting";render();
+    setTimeout(()=>{window.location.href=d.paymentUrl;},600);
+  }catch(e){S.stage="error";S.errMsg=e.message;render();}
+}
+
+function pickPreset(u){S.preset=(S.preset===u)?null:u;S.custom="";S.stage="idle";S.errMsg="";render();}
+function setCustom(v){S.custom=v;S.preset=null;S.stage="idle";S.errMsg="";render();}
+function reset(){
+  S={preset:null,custom:"",stage:"idle",payingWith:null,errMsg:"",orderRef:null,orderData:null};
+  document.getElementById("statusOverlay").style.display="none";
+  document.getElementById("mainCard").style.display="";
+  history.replaceState({},"","/");render();
+}
+function copyRef(t){
+  navigator.clipboard.writeText(t).catch(()=>{});
+  const b=document.getElementById("cpBtn");
+  if(b){b.textContent="✓ Copied!";setTimeout(()=>{b.textContent="Copy";},2000);}
+}
+
+function renderSuccess(){
+  const ov=document.getElementById("statusOverlay");
+  document.getElementById("mainCard").style.display="none";
+  ov.style.display="flex";
+  const od=S.orderData;const ref=S.orderRef;
+  if(!od){
+    ov.innerHTML=`<div class="suc-card"><div class="suc-top"><div class="suc-ico">✓</div>
+      <div class="suc-title">Payment Successful!</div><div class="suc-sub">Loading receipt…</div></div>
+      <div class="suc-body"><div class="loading-box"><div class="big-spin"></div><p>Fetching details…</p></div></div></div>`;
+    return;
+  }
+  const sc=(od.status||"").toUpperCase();
+  const scol=sc.includes("CAPTURED")?"#16a34a":sc.includes("AUTHORISED")?"#2563eb":sc.includes("FAILED")?"#dc2626":"#374151";
+  const dRef=ref||od.reference||"N/A";
+  const cur=od.currency||"AED";
+  const amtFmt=cur==="USD"?"$"+fd(od.amount||0):cur==="EUR"?"€"+fd(od.amount||0):"AED "+fd(od.amount||0);
+  const cards=[
+    {lbl:"Amount Charged",val:amtFmt,big:true},
+    {lbl:"Status",val:od.status||"CAPTURED",color:scol},
+    {lbl:"Currency",val:cur},
+    {lbl:"Date & Time",val:new Date().toLocaleString("en-AE")},
+    {lbl:"Gateway",val:"N-Genius"},
+    {lbl:"Environment",val:CFG.sandbox?"Sandbox":"Live"},
+  ].map(i=>`<div class="info-card"><div class="info-lbl">${esc(i.lbl)}</div>
+    <div class="info-val${i.big?" big":""}" ${i.color?'style="color:'+i.color+'"':""}>
+    ${esc(String(i.val))}</div></div>`).join("");
+  ov.innerHTML=`<div class="suc-card">
+    <div class="suc-top"><div class="suc-ico">✓</div>
+      <div class="suc-title">Payment Successful!</div>
+      <div class="suc-sub">Processed by Network International</div>
+    </div>
+    <div class="suc-body">
+      <div class="ref-box">
+        <div><div class="ref-lbl">Transaction Reference</div><div class="ref-val">${esc(dRef)}</div></div>
+        <button class="copy-btn" id="cpBtn" onclick="copyRef('${esc(dRef)}')">Copy</button>
+      </div>
+      <div class="info-grid">${cards}</div>
+      <div class="suc-actions">
+        <button class="btn-p" onclick="reset()">← New Payment</button>
+        <button class="btn-s" onclick="window.print()">🖨 Print</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function render(){
+  if(S.stage==="success"){renderSuccess();return;}
+  if(S.stage==="cancelled"){
+    document.getElementById("mainCard").style.display="none";
+    const ov=document.getElementById("statusOverlay");
+    ov.style.display="flex";
+    ov.innerHTML=`<div class="suc-card"><div class="can-wrap">
+      <div class="can-ico">✕</div><div class="can-title">Payment Cancelled</div>
+      <div class="can-sub">No charges were made.</div>
+      <button class="back-btn" onclick="reset()">← Try Again</button>
+    </div></div>`;
+    return;
+  }
+  document.getElementById("statusOverlay").style.display="none";
+  document.getElementById("mainCard").style.display="";
+  const usd=selUSD();const busy=S.stage==="loading"||S.stage==="redirecting";const pw=S.payingWith;
+  const presH=PRESETS.map(p=>{
+    const on=S.preset===p.usd;
+    const bH=p.badge?`<div class="pbadge">${esc(p.badge)}</div>`:"";
+    return`<button class="preset${on?" on":""}" onclick="pickPreset(${p.usd})">
+      ${bH}<div class="chk">✓</div><div class="pcur">USD</div><div class="pval">${p.usd}</div>
+    </button>`;
+  }).join("");
+  let fxContent="";
+  if(FX.loading){fxContent=`<div class="fx-empty"><span class="fx-spin"></span>Loading live rates…</div>`;}
+  else if(usd>0){
+    fxContent=`<div class="fx-cards">
+      <div class="fx-card">
+        <div class="fx-l"><div class="fx-flag aed">🇦🇪</div>
+          <div><div class="fx-cur">AED</div><div class="fx-name">UAE Dirham</div></div></div>
+        <div class="fx-r"><div class="fx-amt">${fd(usd*FX.AED)}</div><div class="fx-rate">1 USD = ${fd(FX.AED,4)}</div></div>
+      </div>
+      <div class="fx-card">
+        <div class="fx-l"><div class="fx-flag eur">🇪🇺</div>
+          <div><div class="fx-cur">EUR</div><div class="fx-name">Euro</div></div></div>
+        <div class="fx-r"><div class="fx-amt">${fd(usd*FX.EUR)}</div><div class="fx-rate">1 USD = ${fd(FX.EUR,4)}</div></div>
+      </div>
+    </div>
+    <div class="fx-ts">⏱ Rates updated ${FX.ts?FX.ts.toLocaleTimeString("en-AE",{hour:"2-digit",minute:"2-digit"}):"—"}</div>`;
+  }else{fxContent=`<div class="fx-empty">Select an amount to see conversion</div>`;}
+  const mkBtn=(cur,cls,flag,lbl)=>{
+    const isLoad=busy&&pw===cur;
+    const amt=usd>0?btnAmt(usd,cur):"—";
+    return`<button class="pay-btn ${cls}" onclick="pay('${cur}')" ${(!usd||busy)?"disabled":""}>
+      ${isLoad?`<div class="spin-w"></div><div class="btn-label">Processing…</div>`
+        :`<div class="btn-flag">${flag}</div><div class="btn-label">${lbl}</div><div class="btn-amount">${usd>0?amt:"—"}</div>`}
+    </button>`;
+  };
+  const errH=S.stage==="error"&&S.errMsg?`<div class="err-box"><strong>⚠ Payment Error</strong>${esc(S.errMsg)}</div>`:"";
+  document.getElementById("cardBody").innerHTML=`
+    <div class="env-row">
+      <div class="pg-title">Select <em>amount</em> to pay</div>
+      <div class="env-pill ${CFG.sandbox?"sb":"lv"}">${CFG.sandbox?"🧪 Sandbox":"🟢 Live"}</div>
+    </div>
+    <div class="sec-lbl">Quick Select (USD)</div>
+    <div class="presets">${presH}</div>
+    <div class="custom-section">
+      <div class="custom-label">Custom Amount (USD)</div>
+      <div class="inp-wrap">
+        <span class="inp-pfx">$</span>
+        <input id="camt" class="custom-inp" type="number" placeholder="Enter amount…"
+          min="1" step="0.01" value="${esc(S.custom)}" oninput="setCustom(this.value)"/>
+      </div>
+    </div>
+    <div class="fx-section">
+      <div class="fx-head">
+        <div class="fx-title">Live Currency Equivalent</div>
+        <div class="fx-live"><div class="fx-ldot"></div>Real-time</div>
+      </div>${fxContent}
+    </div>
+    <div class="divider"></div>
+    <div class="total-row">
+      <div class="total-label">Amount</div>
+      <div class="total-val">${usd>0?"$"+fd(usd):"$0.00"}</div>
+    </div>
+    ${errH}
+    <div class="currency-label">Choose your payment currency</div>
+    <div class="pay-btns">
+      ${mkBtn("USD","usd","🇺🇸","Pay in USD")}
+      ${mkBtn("AED","aed","🇦🇪","Pay in AED")}
+      ${mkBtn("EUR","eur","🇪🇺","Pay in EUR")}
+    </div>
+    <div class="trust">
+      <span class="tb">🛡 PCI DSS</span><span class="tb">📱 3D Secure</span><span class="tb">🧾 Receipt</span>
+    </div>
+    <div class="chips">${["VISA","Mastercard","AMEX","Diners","UnionPay"].map(n=>`<div class="chip">${n}</div>`).join("")}</div>
+    <div class="pwr">Secured by 🔶 <strong>Network International</strong></div>`;
+}
+
+(async function(){
+  const p=new URLSearchParams(window.location.search);
+  const st=p.get("status");
+  const ref=p.get("ref")||p.get("order-ref")||p.get("orderRef")||p.get("order_ref");
+  if(st==="success"){
+    S.stage="success";S.orderRef=ref;render();
+    S.orderData=ref?(await fetchOrder(ref)||{status:"CAPTURED",currency:"AED",amount:0}):{status:"CAPTURED",currency:"AED",amount:0};
+    render();return;
+  }
+  if(st==="cancelled")S.stage="cancelled";
+  render();loadFX();setInterval(loadFX,60000);
+})();
+</script>
+</body>
+</html>
