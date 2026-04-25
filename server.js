@@ -27,8 +27,8 @@ const CURRENCY       = (process.env.NGENIUS_CURRENCY      || "AED").trim();
 const SANDBOX        = (process.env.NGENIUS_SANDBOX       || "false").toLowerCase() !== "false";
 const PORT           = Number(process.env.PORT)            || 3000;
 const REDIRECT_BASE  = (process.env.REDIRECT_BASE_URL     || "").trim();
-const HS_TOKEN       =pat-eu1-6e8d4c18-64f8-4546-b505-966d75b8764e (process.env.HUBSPOT_ACCESS_TOKEN  || "").trim();
-const ADMIN_PASSWORD =nubex@2026 (process.env.ADMIN_PASSWORD        || "").trim();
+const HS_TOKEN       = (process.env.HUBSPOT_ACCESS_TOKEN  || "").trim();
+const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD        || "").trim();
 
 const BASE     = SANDBOX
   ? "https://api-gateway.sandbox.ngenius-payments.com"
