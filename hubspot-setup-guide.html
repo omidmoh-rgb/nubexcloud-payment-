@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HubSpot Integration Setup — Nubexcloud</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Sora:wght@300;400;600;800&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c0f14;
+  --surface:#131821;
+  --surface2:#1a2233;
+  --border:#1f2d44;
+  --accent:#f97316;
+  --accent2:#3b82f6;
+  --green:#22c55e;
+  --text:#e8edf5;
+  --muted:#6b7fa8;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Sora',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;padding:0;}
+
+/* ── Header ── */
+.hero{background:linear-gradient(135deg,#0f1929 0%,#1a1f2e 50%,#0f1929 100%);border-bottom:1px solid var(--border);padding:48px 40px 40px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 70% 50%,rgba(249,115,22,.07) 0%,transparent 60%);}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.3);border-radius:99px;padding:5px 14px;font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+.hero h1{font-size:clamp(24px,4vw,38px);font-weight:800;line-height:1.15;margin-bottom:10px;letter-spacing:-.02em;}
+.hero h1 span{color:var(--accent);}
+.hero p{font-size:14px;color:var(--muted);line-height:1.7;max-width:600px;font-weight:300;}
+
+/* ── Layout ── */
+.wrap{max-width:860px;margin:0 auto;padding:48px 28px;}
+
+/* ── Timeline steps ── */
+.timeline{position:relative;padding-left:36px;}
+.timeline::before{content:'';position:absolute;left:13px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--accent),var(--accent2),var(--green));border-radius:2px;}
+
+.step{position:relative;margin-bottom:40px;}
+.step-dot{position:absolute;left:-36px;top:0;width:28px;height:28px;border-radius:50%;background:var(--surface2);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--accent);font-family:var(--mono);}
+.step-dot.blue{border-color:var(--accent2);color:var(--accent2);}
+.step-dot.green{border-color:var(--green);color:var(--green);}
+.step-dot.final{border-color:var(--green);background:rgba(34,197,94,.15);color:var(--green);}
+
+.step-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:6px;}
+.step h2{font-size:17px;font-weight:700;margin-bottom:10px;letter-spacing:-.02em;}
+.step p{font-size:13.5px;color:var(--muted);line-height:1.75;margin-bottom:12px;font-weight:300;}
+
+/* ── Cards ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-top:14px;}
+.card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px;}
+
+/* ── Path navigator ── */
+.path-nav{display:flex;align-items:center;gap:0;flex-wrap:wrap;margin-bottom:14px;}
+.path-seg{font-size:12px;font-weight:600;padding:5px 12px;background:var(--surface2);border:1px solid var(--border);}
+.path-seg:first-child{border-radius:7px 0 0 7px;}
+.path-seg:last-child{border-radius:0 7px 7px 0;background:rgba(249,115,22,.12);color:var(--accent);border-color:rgba(249,115,22,.3);}
+.path-arrow{font-size:10px;color:var(--muted);padding:0 2px;background:var(--surface2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+
+/* ── Scope tags ── */
+.scopes{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;}
+.scope{font-family:var(--mono);font-size:11px;padding:5px 11px;border-radius:6px;border:1px solid;}
+.scope.r{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.25);color:#93c5fd;}
+.scope.w{background:rgba(249,115,22,.08);border-color:rgba(249,115,22,.25);color:#fdba74;}
+
+/* ── Code block ── */
+.code-wrap{position:relative;margin-top:12px;}
+.code-label{position:absolute;top:10px;right:12px;font-family:var(--mono);font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;}
+pre{background:#0a0e17;border:1px solid var(--border);border-radius:10px;padding:18px 16px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.8;color:#c9d8f0;}
+.c-key{color:#fdba74;}
+.c-val{color:#86efac;}
+.c-com{color:#4a5568;font-style:italic;}
+.c-acc{color:var(--accent);}
+.c-blue{color:#93c5fd;}
+
+/* ── Info boxes ── */
+.info{display:flex;gap:12px;background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:14px 16px;margin-top:14px;font-size:13px;color:#93c5fd;line-height:1.65;font-weight:300;}
+.warn{display:flex;gap:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.2);border-radius:10px;padding:14px 16px;margin-top:14px;font-size:13px;color:#fdba74;line-height:1.65;font-weight:300;}
+.ok{display:flex;gap:12px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:14px 16px;margin-top:14px;font-size:13px;color:#86efac;line-height:1.65;font-weight:300;}
+.box-icon{font-size:18px;flex-shrink:0;line-height:1.3;}
+
+/* ── Data flow diagram ── */
+.flow{display:flex;align-items:center;flex-wrap:wrap;gap:0;margin:16px 0;}
+.flow-node{padding:8px 14px;border-radius:8px;font-size:11px;font-weight:700;text-align:center;flex:1;min-width:90px;}
+.flow-node.ng{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);color:#93c5fd;}
+.flow-node.sv{background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.3);color:#fdba74;}
+.flow-node.hs{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#86efac;}
+.flow-node span{display:block;font-size:9px;font-weight:400;opacity:.7;margin-top:2px;}
+.flow-arr{font-size:16px;color:var(--muted);padding:0 4px;flex-shrink:0;}
+
+/* ── CRM preview ── */
+.crm-preview{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+.crm-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.crm-type{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
+.crm-type.contact{color:var(--accent2);}
+.crm-type.deal{color:var(--green);}
+.crm-row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11.5px;}
+.crm-row:last-child{border-bottom:none;}
+.crm-k{color:var(--muted);font-weight:400;}
+.crm-v{color:var(--text);font-family:var(--mono);font-size:10.5px;font-weight:700;}
+.crm-v.orange{color:var(--accent);}
+.crm-v.green{color:var(--green);}
+.crm-v.blue{color:#93c5fd;}
+
+@media(max-width:560px){
+  .crm-preview{grid-template-columns:1fr;}
+  .hero{padding:32px 20px;}
+  .wrap{padding:32px 18px;}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-badge"><div class="dot"></div>Integration Guide</div>
+  <h1>HubSpot CRM Setup<br/><span>for Nubexcloud Payments</span></h1>
+  <p>Follow these steps once. Every confirmed payment will automatically appear as a Contact + Deal in your HubSpot account — completely invisible to the customer.</p>
+</div>
+
+<div class="wrap">
+
+  <!-- DATA FLOW -->
+  <div style="margin-bottom:48px;">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:14px;">How it works</div>
+    <div class="flow">
+      <div class="flow-node ng">N-Genius<span>Processes payment</span></div>
+      <div class="flow-arr">→</div>
+      <div class="flow-node sv">Railway Server<span>Confirms status</span></div>
+      <div class="flow-arr">→</div>
+      <div class="flow-node hs">HubSpot CRM<span>Contact + Deal created</span></div>
+    </div>
+    <div class="info"><div class="box-icon">ℹ️</div>
+      The push to HubSpot happens entirely on the server when the payment status is confirmed as CAPTURED or AUTHORISED. The customer sees only the normal success page — no delay, no awareness.
+    </div>
+  </div>
+
+  <div class="timeline">
+
+    <!-- STEP 1 -->
+    <div class="step">
+      <div class="step-dot">1</div>
+      <div class="step-label">HubSpot</div>
+      <h2>Log in to your HubSpot account</h2>
+      <p>Go to <strong style="color:var(--text)">app.hubspot.com</strong> and sign in with your admin account. You need a <strong style="color:var(--text)">Super Admin</strong> or account with <em>Private App</em> permissions.</p>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step">
+      <div class="step-dot">2</div>
+      <div class="step-label">Navigation</div>
+      <h2>Open Private Apps settings</h2>
+      <p>Click your account name (top-right) → <strong style="color:var(--text)">Settings</strong>. Then in the left sidebar go to:</p>
+      <div class="path-nav">
+        <div class="path-seg">⚙ Settings</div>
+        <div class="path-arrow">›</div>
+        <div class="path-seg">Integrations</div>
+        <div class="path-arrow">›</div>
+        <div class="path-seg">Private Apps</div>
+      </div>
+      <p>Click the orange <strong style="color:var(--accent)">Create a private app</strong> button.</p>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step">
+      <div class="step-dot">3</div>
+      <div class="step-label">App Info</div>
+      <h2>Name and describe the app</h2>
+      <div class="card">
+        <div class="card-title">Fill in these fields</div>
+        <div class="crm-card" style="margin-top:0;background:transparent;border:none;padding:0;">
+          <div class="crm-row"><span class="crm-k">App name</span><span class="crm-v orange">Nubex Payment Integration</span></div>
+          <div class="crm-row"><span class="crm-k">Description</span><span class="crm-v" style="font-family:var(--sans);font-size:11px;">Auto-records N-Genius payment transactions</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step">
+      <div class="step-dot blue">4</div>
+      <div class="step-label">Permissions — Critical</div>
+      <h2>Grant exactly these scopes</h2>
+      <p>Click the <strong style="color:var(--text)">Scopes</strong> tab. Search for and enable each of the following. Get this right — too few and the integration will fail.</p>
+
+      <div class="card">
+        <div class="card-title">Required scopes</div>
+        <div class="scopes">
+          <div class="scope r">crm.objects.contacts.read</div>
+          <div class="scope w">crm.objects.contacts.write</div>
+          <div class="scope r">crm.objects.deals.read</div>
+          <div class="scope w">crm.objects.deals.write</div>
+          <div class="scope r">crm.schemas.deals.read</div>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:14px;font-size:11px;color:var(--muted);">
+          <span style="display:flex;align-items:center;gap:5px;"><span class="scope r" style="padding:2px 8px;">read</span> = read</span>
+          <span style="display:flex;align-items:center;gap:5px;"><span class="scope w" style="padding:2px 8px;">write</span> = create / update</span>
+        </div>
+      </div>
+
+      <div class="warn"><div class="box-icon">⚠️</div>
+        Do <strong>not</strong> grant more permissions than listed above. Least-privilege keeps your HubSpot data safe if the token is ever exposed.
+      </div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="step">
+      <div class="step-dot">5</div>
+      <div class="step-label">Token</div>
+      <h2>Create the app and copy your token</h2>
+      <p>Click <strong style="color:var(--accent)">Create app</strong>. HubSpot will show a <strong style="color:var(--text)">Private App Token</strong> — a long string starting with <code style="font-family:var(--mono);font-size:12px;color:#93c5fd;">pat-na1-…</code></p>
+      <div class="warn"><div class="box-icon">⚠️</div>
+        <strong>Copy it immediately.</strong> HubSpot only shows it once. If you lose it, you must rotate (delete + recreate) the token.
+      </div>
+    </div>
+
+    <!-- STEP 6 -->
+    <div class="step">
+      <div class="step-dot blue">6</div>
+      <div class="step-label">Railway</div>
+      <h2>Add the token to Railway environment variables</h2>
+      <p>Go to <strong style="color:var(--text)">railway.app</strong> → your project → <strong style="color:var(--text)">Variables</strong> tab. Add a new variable:</p>
+
+      <div class="code-wrap">
+        <div class="code-label">.env / Railway variable</div>
+        <pre><span class="c-key">HUBSPOT_ACCESS_TOKEN</span>=<span class="c-val">pat-na1-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</span></pre>
+      </div>
+
+      <div class="info"><div class="box-icon">💡</div>
+        Railway automatically redeploys when you save a new variable. No extra steps needed — the server picks it up on next boot.
+      </div>
+    </div>
+
+    <!-- STEP 7 -->
+    <div class="step">
+      <div class="step-dot">7</div>
+      <div class="step-label">Deploy</div>
+      <h2>Replace server.js on GitHub</h2>
+      <p>Push the new <code style="font-family:var(--mono);font-size:12px;color:var(--accent);">server.js</code> file to your GitHub repo. Railway will auto-deploy. Verify the startup log shows:</p>
+
+      <div class="code-wrap">
+        <div class="code-label">Railway logs</div>
+        <pre><span class="c-com">║  Nubexcloud Payment Server — LIVE        ║</span>
+  Port    : 3000
+  Mode    : <span class="c-val">🟢 LIVE</span>
+  HubSpot : <span class="c-val">✓ Set</span>        <span class="c-com">← must show this</span></pre>
+      </div>
+
+      <div class="warn"><div class="box-icon">⚠️</div>
+        If it shows <code style="font-family:var(--mono);font-size:11px;">⚠ NOT SET</code> the variable wasn't saved correctly. Go back to Railway → Variables and check the name is exactly <code style="font-family:var(--mono);font-size:11px;">HUBSPOT_ACCESS_TOKEN</code>.
+      </div>
+    </div>
+
+    <!-- STEP 8 -->
+    <div class="step">
+      <div class="step-dot green">8</div>
+      <div class="step-label">Verify</div>
+      <h2>Test with a sandbox payment</h2>
+      <p>Make a test payment using your sandbox mode. Then open HubSpot → <strong style="color:var(--text)">CRM → Contacts</strong> and <strong style="color:var(--text)">CRM → Deals</strong>. You should see:</p>
+
+      <div class="crm-preview">
+        <div class="crm-card">
+          <div class="crm-type contact">👤 Contact created</div>
+          <div class="crm-row"><span class="crm-k">Email</span><span class="crm-v orange">customer-{ref}@nubexcloud.com</span></div>
+          <div class="crm-row"><span class="crm-k">First name</span><span class="crm-v">Customer</span></div>
+          <div class="crm-row"><span class="crm-k">Last name</span><span class="crm-v">{order reference}</span></div>
+          <div class="crm-row"><span class="crm-k">Lifecycle</span><span class="crm-v green">Customer</span></div>
+        </div>
+        <div class="crm-card">
+          <div class="crm-type deal">💰 Deal created</div>
+          <div class="crm-row"><span class="crm-k">Name</span><span class="crm-v orange">Nubex Payment — {ref}</span></div>
+          <div class="crm-row"><span class="crm-k">Amount</span><span class="crm-v green">{USD / AED / EUR}</span></div>
+          <div class="crm-row"><span class="crm-k">Stage</span><span class="crm-v green">Closed Won</span></div>
+          <div class="crm-row"><span class="crm-k">Gateway</span><span class="crm-v blue">N-Genius</span></div>
+        </div>
+      </div>
+
+      <div class="ok"><div class="box-icon">✅</div>
+        If you see both records — the integration is live. Every future payment, in any currency (USD, AED, EUR), will automatically create a Contact + Deal in your HubSpot.
+      </div>
+    </div>
+
+    <!-- STEP 9 — health check -->
+    <div class="step">
+      <div class="step-dot final">✓</div>
+      <div class="step-label">Health Check</div>
+      <h2>Confirm via health endpoint at any time</h2>
+      <p>You can always verify the server's HubSpot status by visiting:</p>
+      <div class="code-wrap">
+        <div class="code-label">Browser / curl</div>
+        <pre>https://nubexcloud-payment-production.up.railway.app<span class="c-acc">/health</span></pre>
+      </div>
+      <div class="code-wrap">
+        <div class="code-label">Expected JSON response</div>
+        <pre>{
+  <span class="c-key">"status"</span>    : <span class="c-val">"ok"</span>,
+  <span class="c-key">"env"</span>       : <span class="c-val">"live"</span>,
+  <span class="c-key">"configured"</span>: <span class="c-val">true</span>,
+  <span class="c-key">"hubspot"</span>   : <span class="c-val">"✓ configured"</span>,   <span class="c-com">// ← watch this field</span>
+  <span class="c-key">"hs_pushed"</span> : <span class="c-val">3</span>                  <span class="c-com">// number pushed this session</span>
+}</pre>
+      </div>
+    </div>
+
+  </div><!-- /timeline -->
+
+  <div style="text-align:center;padding:32px 0 16px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);">
+    Nubexcloud · Payment × HubSpot Integration · Built for internal management use only
+  </div>
+
+</div>
+</body>
+</html>
