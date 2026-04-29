@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nubex Payment</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f8fafc;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        max-width: 520px;
+        margin: 60px auto;
+        background: #ffffff;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        text-align: center;
+    }
+
+    h1 {
+        margin-bottom: 5px;
+        color: #f97316;
+    }
+
+    /* Currency badge — locked to USD */
+    .currency-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 20px;
+        padding: 4px 12px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #15803d;
+        margin-bottom: 10px;
+        letter-spacing: 0.04em;
+    }
+
+    .currency-badge .flag {
+        font-size: 14px;
+    }
+
+    .desc {
+        font-size: 14px;
+        color: #374151;
+        margin-top: 10px;
+        line-height: 1.5;
+    }
+
+    .amount {
+        font-size: 28px;
+        font-weight: bold;
+        margin: 15px 0;
+        color: #16a34a;
+    }
+
+    .options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        margin: 20px 0;
+        gap: 10px;
+    }
+
+    .option {
+        flex: 1;
+        padding: 14px;
+        border-radius: 10px;
+        border: 2px solid #e5e7eb;
+        cursor: pointer;
+        transition: 0.25s;
+        font-size: 14px;
+        background: #f9fafb;
+        position: relative;
+    }
+
+    .option:hover {
+        border-color: #f97316;
+        transform: translateY(-2px);
+    }
+
+    .option.selected {
+        border-color: #16a34a;
+        background: #ecfdf5;
+    }
+
+    .option strong {
+        font-size: 16px;
+        display: block;
+    }
+
+    .badge {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: #f97316;
+        color: white;
+        font-size: 10px;
+        padding: 4px 6px;
+        border-radius: 6px;
+    }
+
+    .custom {
+        margin-top: 15px;
+        padding: 12px;
+        border: 2px dashed #d1d5db;
+        border-radius: 10px;
+    }
+
+    .custom input {
+        width: 100%;
+        padding: 10px;
+        margin-top: 8px;
+        border-radius: 6px;
+        border: 1px solid #d1d5db;
+        font-size: 14px;
+        text-align: center;
+        box-sizing: border-box;
+    }
+
+    .note {
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 5px;
+    }
+
+    .total {
+        font-size: 20px;
+        margin-top: 15px;
+        font-weight: bold;
+    }
+
+    .btn {
+        width: 70%;
+        margin: 20px auto 0;
+        padding: 10px;
+        border: none;
+        border-radius: 6px;
+        background: #f97316;
+        color: white;
+        font-size: 14px;
+        cursor: pointer;
+        font-weight: bold;
+        display: block;
+    }
+
+    .btn:hover {
+        background: #ea580c;
+    }
+
+    .skip {
+        margin-top: 15px;
+        font-size: 14px;
+        color: #111827;
+        cursor: pointer;
+        font-weight: bold;
+        text-decoration: underline;
+    }
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Nubex</h1>
+
+    <!-- USD locked badge -->
+    <div class="currency-badge">
+        <span class="flag">🇺🇸</span>
+        Paying in USD
+    </div>
+
+    <div class="desc">
+        Select your payment amount
+    </div>
+
+    <div class="amount" id="displayAmount">$0</div>
+
+    <div class="desc">
+        Select an amount below to proceed with your payment
+    </div>
+
+    <div class="options">
+        <div class="option" onclick="selectPreset(1,this)">
+            <strong>$1</strong>
+        </div>
+
+        <div class="option" onclick="selectPreset(10,this)">
+            <strong>$10</strong>
+        </div>
+
+        <div class="option" onclick="selectPreset(50,this)">
+            <strong>$50</strong>
+        </div>
+
+        <div class="option" onclick="selectPreset(100,this)">
+            <strong>$100</strong>
+        </div>
+    </div>
+
+    <div class="custom">
+        <strong>Custom Amount</strong>
+        <input type="number" id="customAmount" placeholder="Enter amount in USD" oninput="handleCustom()">
+    </div>
+
+    <div class="total">
+        Total: <span id="total">$0</span>
+    </div>
+
+    <button class="btn" onclick="pay()">Proceed to Payment</button>
+</div>
+
+<script>
+    let selected = 0;
+
+    function selectPreset(amount, el){
+        document.getElementById("customAmount").value = "";
+        document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+        el.classList.add('selected');
+        selected = amount;
+        update();
+    }
+
+    function handleCustom(){
+        document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+        let val = parseFloat(document.getElementById("customAmount").value);
+        if(val > 0){
+            selected = val;
+        } else {
+            selected = 0;
+        }
+        update();
+    }
+
+    function update(){
+        let display = selected > 0 ? "$" + selected : "$0";
+        document.getElementById("displayAmount").innerText = display;
+        document.getElementById("total").innerText = display;
+    }
+
+    function pay(){
+        if(selected <= 0){
+            alert("Please select an amount to proceed.");
+            return;
+        }
+        // Currency is locked to USD — passed explicitly to the payment server
+        window.location.href = "/payment-initiate?amount=" + selected + "&currency=USD";
+    }
+</script>
+
+</body>
+</html>
