@@ -120,14 +120,14 @@
   .amount-grid {
     display      : grid;
     grid-template-columns: repeat(3, 1fr);
-    gap          : 8px;
-    margin-bottom: 16px;
+    gap          : 10px;
+    margin-bottom: 14px;
   }
   .amt-btn {
     border       : 1.5px solid var(--border);
     border-radius: 10px;
     background   : #fff;
-    padding      : 12px 8px;
+    padding      : 16px 8px;
     cursor       : pointer;
     text-align   : center;
     transition   : all .18s ease;
@@ -164,6 +164,11 @@
     transition   : border-color .18s;
   }
   .custom-amount-wrap:focus-within { border-color: var(--orange); }
+  .custom-amount-wrap.active {
+    border-color : var(--orange);
+    background   : #fff6f2;
+  }
+  .custom-amount-wrap.active .prefix { background: #fff6f2; }
   .custom-amount-wrap .prefix {
     padding      : 0 14px;
     font-family  : var(--font-head);
@@ -440,33 +445,23 @@
       <!-- Amount selection -->
       <div class="section-label">Select amount (USD)</div>
       <div class="amount-grid">
+        <button class="amt-btn" data-value="1" onclick="selectAmount(this,1)">
+          <span class="price">$1</span>
+        </button>
+        <button class="amt-btn" data-value="5" onclick="selectAmount(this,5)">
+          <span class="price">$5</span>
+        </button>
         <button class="amt-btn" data-value="10" onclick="selectAmount(this,10)">
           <span class="price">$10</span>
         </button>
-        <button class="amt-btn" data-value="15" onclick="selectAmount(this,15)">
-          <span class="price">$15</span>
-        </button>
-        <button class="amt-btn" data-value="25" onclick="selectAmount(this,25)">
-          <span class="price">$25</span>
-        </button>
-        <button class="amt-btn" data-value="51.5" onclick="selectAmount(this,51.5)">
-          <span class="price">$50</span>
-          <span class="badge">+3%</span>
-        </button>
-        <button class="amt-btn" data-value="105" onclick="selectAmount(this,105)">
-          <span class="price">$100</span>
-          <span class="badge">+5%</span>
-        </button>
-        <button class="amt-btn" data-value="540" onclick="selectAmount(this,540)">
-          <span class="price">$500</span>
-          <span class="badge">+8%</span>
-        </button>
       </div>
-      <div class="custom-amount-wrap">
+      <div class="custom-amount-wrap" id="customWrap">
         <div class="prefix">$</div>
-        <input type="number" id="customAmt" min="5" step="0.01"
-               placeholder="Enter amount (min $5)"
-               oninput="onCustomAmount(this)"/>
+        <input type="number" id="customAmt" min="1" step="0.01"
+               placeholder="Or enter any amount (min $1)"
+               oninput="onCustomAmount(this)"
+               onfocus="onCustomFocus()"
+               onblur="onCustomBlur()"/>
       </div>
 
       <div class="divider"></div>
@@ -562,16 +557,37 @@ function selectAmount(btn, value) {
   document.querySelectorAll(".amt-btn").forEach(b => b.classList.remove("selected"));
   btn.classList.add("selected");
   document.getElementById("customAmt").value = "";
+  document.getElementById("customWrap").classList.remove("active");
   selectedAmount = value;
   updateBtn();
   if (selectedGateway === "stripe") refreshStripeIntent();
 }
 
 function onCustomAmount(input) {
+  const val = parseFloat(input.value) || 0;
   document.querySelectorAll(".amt-btn").forEach(b => b.classList.remove("selected"));
-  selectedAmount = parseFloat(input.value) || 0;
+  selectedAmount = val;
+  // Show active state on wrapper
+  const wrap = document.getElementById("customWrap");
+  wrap.classList.toggle("active", val >= 1);
   updateBtn();
-  if (selectedGateway === "stripe") refreshStripeIntent();
+  if (selectedGateway === "stripe" && val >= 1) refreshStripeIntent();
+}
+
+function onCustomFocus() {
+  // Deselect preset buttons when user clicks into custom field
+  document.querySelectorAll(".amt-btn").forEach(b => b.classList.remove("selected"));
+}
+
+function onCustomBlur() {
+  const input = document.getElementById("customAmt");
+  const val   = parseFloat(input.value) || 0;
+  if (val > 0 && val < 1) {
+    input.value = "1";
+    selectedAmount = 1;
+    document.getElementById("customWrap").classList.add("active");
+    updateBtn();
+  }
 }
 
 // ── Gateway selection ─────────────────────────────────────────
@@ -593,7 +609,7 @@ async function selectGateway(gw) {
 
 // ── Stripe init ───────────────────────────────────────────────
 async function initStripe() {
-  if (!selectedAmount || selectedAmount < 5) {
+  if (!selectedAmount || selectedAmount < 1) {
     showMsg("Please select or enter an amount first.", "info");
     selectedGateway = "";
     document.querySelectorAll(".gw-card").forEach(c => c.classList.remove("active"));
@@ -674,7 +690,7 @@ async function mountStripeElement() {
 }
 
 async function refreshStripeIntent() {
-  if (selectedGateway !== "stripe" || !selectedAmount || selectedAmount < 5) return;
+  if (selectedGateway !== "stripe" || !selectedAmount || selectedAmount < 1) return;
   stripeReady = false;
   updateBtn();
   try {
@@ -692,8 +708,8 @@ function updateBtn() {
     btn.disabled = true;
     return;
   }
-  if (!selectedAmount || selectedAmount < 5) {
-    text.textContent = "Select an amount (min $5)";
+  if (!selectedAmount || selectedAmount < 1) {
+    text.textContent = "Select an amount (min $1)";
     btn.disabled = true;
     return;
   }
@@ -721,7 +737,7 @@ async function handlePay() {
 
   if (!name)  return showMsg("Please enter your full name.", "error");
   if (!email || !email.includes("@")) return showMsg("Please enter a valid email address.", "error");
-  if (!selectedAmount || selectedAmount < 5) return showMsg("Minimum payment is $5.", "error");
+  if (!selectedAmount || selectedAmount < 1) return showMsg("Minimum payment is $1.", "error");
 
   if (selectedGateway === "nae")    await payWithNae(name, email);
   if (selectedGateway === "stripe") await payWithStripe(name, email);
