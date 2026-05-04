@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Payment Successful — NubexCloud</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  body { font-family: 'DM Sans',sans-serif; background:#f8f7f5; display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; }
+  .card { background:#fff; border-radius:16px; box-shadow:0 8px 48px rgba(0,0,0,.1); padding:48px 40px; max-width:440px; width:100%; text-align:center; }
+  .icon { width:64px; height:64px; background:#f0fdf4; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; }
+  .icon svg { color:#16a34a; }
+  h1 { font-family:'Bricolage Grotesque',sans-serif; font-size:24px; font-weight:700; color:#1a1714; margin-bottom:8px; }
+  p { color:#7a746e; font-size:15px; line-height:1.6; margin-bottom:24px; }
+  a { display:inline-block; background:#e34f14; color:#fff; font-family:'Bricolage Grotesque',sans-serif; font-weight:700; border-radius:10px; padding:12px 28px; text-decoration:none; font-size:15px; }
+  a:hover { background:#bf3e0c; }
+  .ref { font-size:12px; color:#b0aa9e; margin-top:16px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+    </svg>
+  </div>
+  <h1>Payment Successful!</h1>
+  <p>Your NubexCloud account has been credited. You'll receive a confirmation email shortly.</p>
+  <a href="https://nubexcloud.com">Back to Dashboard</a>
+  <div class="ref" id="refLine"></div>
+</div>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get('payment_intent') || params.get('ref') || '';
+  if (ref) document.getElementById('refLine').textContent = 'Reference: ' + ref;
+</script>
+</body>
+</html>
