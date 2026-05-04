@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NubexCloud — Secure Payment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  /* ── Reset & tokens ────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --orange   : #e34f14;
+    --orange-d  : #bf3e0c;
+    --bg        : #f8f7f5;
+    --card-bg   : #ffffff;
+    --border    : #e8e6e1;
+    --text       : #1a1714;
+    --muted      : #7a746e;
+    --success    : #16a34a;
+    --error      : #dc2626;
+    --font-head  : 'Bricolage Grotesque', sans-serif;
+    --font-body  : 'DM Sans', sans-serif;
+    --radius     : 14px;
+    --shadow     : 0 4px 24px rgba(0,0,0,.08);
+    --shadow-lg  : 0 8px 48px rgba(0,0,0,.12);
+  }
+
+  body {
+    font-family: var(--font-body);
+    background : var(--bg);
+    color      : var(--text);
+    min-height : 100vh;
+    display    : flex;
+    flex-direction: column;
+  }
+
+  /* ── Topbar ────────────────────────────────────────── */
+  .topbar {
+    background  : #fff;
+    border-bottom: 1px solid var(--border);
+    padding     : 0 32px;
+    height      : 60px;
+    display     : flex;
+    align-items : center;
+    justify-content: space-between;
+    position    : sticky;
+    top         : 0;
+    z-index     : 100;
+  }
+  .topbar-logo {
+    font-family : var(--font-head);
+    font-size   : 20px;
+    font-weight : 700;
+    color       : var(--text);
+    text-decoration: none;
+    display     : flex;
+    align-items : center;
+    gap         : 8px;
+  }
+  .topbar-logo span { color: var(--orange); }
+  .topbar-secure {
+    font-size   : 12px;
+    color       : var(--muted);
+    display     : flex;
+    align-items : center;
+    gap         : 5px;
+  }
+  .topbar-secure svg { color: var(--success); }
+
+  /* ── Main layout ───────────────────────────────────── */
+  .page-wrap {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 40px 20px 80px;
+  }
+  .checkout-card {
+    background    : var(--card-bg);
+    border-radius : var(--radius);
+    box-shadow    : var(--shadow-lg);
+    width         : 100%;
+    max-width     : 520px;
+    overflow      : hidden;
+  }
+
+  /* ── Card header ───────────────────────────────────── */
+  .card-header {
+    background   : var(--orange);
+    padding      : 28px 32px 24px;
+    color        : #fff;
+  }
+  .card-header h1 {
+    font-family  : var(--font-head);
+    font-size    : 22px;
+    font-weight  : 700;
+    margin-bottom: 4px;
+  }
+  .card-header p { font-size: 14px; opacity: .85; }
+
+  /* ── Card body ─────────────────────────────────────── */
+  .card-body { padding: 28px 32px 32px; }
+
+  /* ── Section labels ────────────────────────────────── */
+  .section-label {
+    font-family  : var(--font-head);
+    font-size    : 11px;
+    font-weight  : 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color        : var(--muted);
+    margin-bottom: 12px;
+  }
+
+  /* ── Amount grid ───────────────────────────────────── */
+  .amount-grid {
+    display      : grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap          : 10px;
+    margin-bottom: 14px;
+  }
+  .amt-btn {
+    border       : 1.5px solid var(--border);
+    border-radius: 10px;
+    background   : #fff;
+    padding      : 16px 8px;
+    cursor       : pointer;
+    text-align   : center;
+    transition   : all .18s ease;
+    position     : relative;
+  }
+  .amt-btn:hover { border-color: var(--orange); }
+  .amt-btn.selected {
+    border-color  : var(--orange);
+    background    : #fff6f2;
+  }
+  .amt-btn .price {
+    font-family : var(--font-head);
+    font-size   : 17px;
+    font-weight : 700;
+    display     : block;
+    color       : var(--text);
+  }
+  .amt-btn .badge {
+    font-size    : 10px;
+    background   : var(--orange);
+    color        : #fff;
+    border-radius: 4px;
+    padding      : 1px 5px;
+    margin-top   : 3px;
+    display      : inline-block;
+  }
+  .custom-amount-wrap {
+    display      : flex;
+    align-items  : center;
+    border       : 1.5px solid var(--border);
+    border-radius: 10px;
+    overflow     : hidden;
+    margin-bottom: 24px;
+    transition   : border-color .18s;
+  }
+  .custom-amount-wrap:focus-within { border-color: var(--orange); }
+  .custom-amount-wrap.active {
+    border-color : var(--orange);
+    background   : #fff6f2;
+  }
+  .custom-amount-wrap.active .prefix { background: #fff6f2; }
+  .custom-amount-wrap .prefix {
+    padding      : 0 14px;
+    font-family  : var(--font-head);
+    font-size    : 18px;
+    font-weight  : 600;
+    color        : var(--muted);
+    background   : var(--bg);
+    border-right : 1.5px solid var(--border);
+    height       : 48px;
+    display      : flex;
+    align-items  : center;
+  }
+  .custom-amount-wrap input {
+    flex    : 1;
+    border  : none;
+    outline : none;
+    padding : 0 14px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    height  : 48px;
+    background: transparent;
+  }
+
+  /* ── Form fields ───────────────────────────────────── */
+  .field-group { margin-bottom: 24px; }
+  .field-row {
+    display : grid;
+    grid-template-columns: 1fr 1fr;
+    gap     : 12px;
+  }
+  .field {
+    display        : flex;
+    flex-direction : column;
+    gap            : 6px;
+    margin-bottom  : 12px;
+  }
+  .field label {
+    font-size   : 13px;
+    font-weight : 500;
+    color       : var(--muted);
+  }
+  .field input {
+    border       : 1.5px solid var(--border);
+    border-radius: 10px;
+    padding      : 11px 14px;
+    font-family  : var(--font-body);
+    font-size    : 14px;
+    outline      : none;
+    transition   : border-color .18s;
+    background   : #fff;
+  }
+  .field input:focus { border-color: var(--orange); }
+
+  /* ── Gateway selector ──────────────────────────────── */
+  .gateway-label {
+    font-family  : var(--font-head);
+    font-size    : 11px;
+    font-weight  : 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color        : var(--muted);
+    margin-bottom: 12px;
+  }
+  .gateway-grid {
+    display : grid;
+    grid-template-columns: 1fr 1fr;
+    gap     : 10px;
+    margin-bottom: 24px;
+  }
+  .gw-card {
+    border       : 2px solid var(--border);
+    border-radius: var(--radius);
+    padding      : 16px 14px;
+    cursor       : pointer;
+    transition   : all .2s ease;
+    text-align   : center;
+    position     : relative;
+    background   : #fff;
+    user-select  : none;
+  }
+  .gw-card:hover { border-color: var(--orange); box-shadow: 0 2px 12px rgba(227,79,20,.1); }
+  .gw-card.active {
+    border-color : var(--orange);
+    background   : #fff6f2;
+    box-shadow   : 0 4px 20px rgba(227,79,20,.15);
+  }
+  .gw-card.active::after {
+    content      : '✓';
+    position     : absolute;
+    top          : 8px;
+    right        : 10px;
+    width        : 18px;
+    height       : 18px;
+    background   : var(--orange);
+    color        : #fff;
+    border-radius: 50%;
+    font-size    : 11px;
+    font-weight  : 700;
+    display      : flex;
+    align-items  : center;
+    justify-content: center;
+    line-height  : 18px;
+  }
+  .gw-logo {
+    height       : 32px;
+    object-fit   : contain;
+    margin-bottom: 8px;
+    display      : block;
+    margin-left  : auto;
+    margin-right : auto;
+  }
+  .gw-name {
+    font-family  : var(--font-head);
+    font-size    : 13px;
+    font-weight  : 600;
+    color        : var(--text);
+    display      : block;
+    margin-bottom: 2px;
+  }
+  .gw-desc {
+    font-size  : 11px;
+    color      : var(--muted);
+    line-height: 1.4;
+  }
+  /* Network.ae brand text logo */
+  .gw-brand-nae {
+    font-family  : var(--font-head);
+    font-size    : 15px;
+    font-weight  : 700;
+    color        : #1a1714;
+    height       : 32px;
+    display      : flex;
+    align-items  : center;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+  .gw-brand-nae em { color: var(--orange); font-style: normal; }
+  /* Stripe brand text logo */
+  .gw-brand-stripe {
+    font-family  : var(--font-head);
+    font-size    : 22px;
+    font-weight  : 700;
+    color        : #6772e5;
+    height       : 32px;
+    display      : flex;
+    align-items  : center;
+    justify-content: center;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+
+  /* ── Stripe Payment Element container ──────────────── */
+  #stripe-element-wrap {
+    display      : none;
+    border       : 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding      : 18px;
+    margin-bottom: 20px;
+    background   : #fff;
+  }
+  #stripe-element-wrap.visible { display: block; }
+  #payment-element { min-height: 80px; }
+
+  /* ── Pay button ────────────────────────────────────── */
+  .pay-btn {
+    width        : 100%;
+    height       : 52px;
+    background   : var(--orange);
+    color        : #fff;
+    border       : none;
+    border-radius: 12px;
+    font-family  : var(--font-head);
+    font-size    : 16px;
+    font-weight  : 700;
+    cursor       : pointer;
+    transition   : background .18s, transform .1s;
+    display      : flex;
+    align-items  : center;
+    justify-content: center;
+    gap          : 8px;
+    letter-spacing: .01em;
+  }
+  .pay-btn:hover:not(:disabled) { background: var(--orange-d); }
+  .pay-btn:active:not(:disabled){ transform: scale(.98); }
+  .pay-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+  /* ── Messages ──────────────────────────────────────── */
+  #msg {
+    margin-top : 14px;
+    padding    : 12px 16px;
+    border-radius: 10px;
+    font-size  : 14px;
+    display    : none;
+    font-weight: 500;
+  }
+  #msg.error   { background: #fef2f2; color: var(--error);   border: 1px solid #fecaca; display: block; }
+  #msg.success { background: #f0fdf4; color: var(--success);  border: 1px solid #bbf7d0; display: block; }
+  #msg.info    { background: #eff6ff; color: #1d4ed8;         border: 1px solid #bfdbfe; display: block; }
+
+  /* ── Trust badges ──────────────────────────────────── */
+  .trust-row {
+    display        : flex;
+    justify-content: center;
+    gap            : 20px;
+    margin-top     : 20px;
+    padding-top    : 16px;
+    border-top     : 1px solid var(--border);
+  }
+  .trust-item {
+    display    : flex;
+    align-items: center;
+    gap        : 5px;
+    font-size  : 11px;
+    color      : var(--muted);
+  }
+  .trust-item svg { color: var(--success); flex-shrink: 0; }
+
+  /* ── Divider ───────────────────────────────────────── */
+  .divider {
+    height       : 1px;
+    background   : var(--border);
+    margin       : 20px 0;
+  }
+
+  /* ── Spinner ───────────────────────────────────────── */
+  .spinner {
+    width  : 18px;
+    height : 18px;
+    border : 2.5px solid rgba(255,255,255,.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Responsive ────────────────────────────────────── */
+  @media (max-width: 480px) {
+    .card-body  { padding: 20px 18px 24px; }
+    .card-header{ padding: 22px 18px 18px; }
+    .amount-grid{ grid-template-columns: repeat(2, 1fr); }
+    .gateway-grid{ grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Topbar -->
+<header class="topbar">
+  <a href="https://nubexcloud.com" class="topbar-logo">
+    Nubex<span>Cloud</span>
+  </a>
+  <div class="topbar-secure">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+    </svg>
+    256-bit SSL Secured
+  </div>
+</header>
+
+<!-- Main -->
+<div class="page-wrap">
+  <div class="checkout-card">
+
+    <!-- Header -->
+    <div class="card-header">
+      <h1>Secure Top-Up</h1>
+      <p>Add credit to your NubexCloud account instantly</p>
+    </div>
+
+    <!-- Body -->
+    <div class="card-body">
+
+      <!-- Amount selection -->
+      <div class="section-label">Select amount (USD)</div>
+      <div class="amount-grid">
+        <button class="amt-btn" data-value="1" onclick="selectAmount(this,1)">
+          <span class="price">$1</span>
+        </button>
+        <button class="amt-btn" data-value="5" onclick="selectAmount(this,5)">
+          <span class="price">$5</span>
+        </button>
+        <button class="amt-btn" data-value="10" onclick="selectAmount(this,10)">
+          <span class="price">$10</span>
+        </button>
+      </div>
+      <div class="custom-amount-wrap" id="customWrap">
+        <div class="prefix">$</div>
+        <input type="number" id="customAmt" min="1" step="0.01"
+               placeholder="Or enter any amount (min $1)"
+               oninput="onCustomAmount(this)"
+               onfocus="onCustomFocus()"
+               onblur="onCustomBlur()"/>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Billing info -->
+      <div class="section-label">Billing details</div>
+      <div class="field-group">
+        <div class="field-row">
+          <div class="field">
+            <label>Full name</label>
+            <input type="text" id="billingName" placeholder="Jane Smith"/>
+          </div>
+          <div class="field">
+            <label>Email address</label>
+            <input type="email" id="billingEmail" placeholder="jane@company.com"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Gateway selection -->
+      <div class="gateway-label">Pay via</div>
+      <div class="gateway-grid">
+
+        <!-- Network.ae card -->
+        <div class="gw-card" id="gw-nae" onclick="selectGateway('nae')">
+          <div class="gw-brand-nae">network<em>.ae</em></div>
+          <span class="gw-name">Network.ae</span>
+          <span class="gw-desc">UAE & regional cards, AED/USD/EUR</span>
+        </div>
+
+        <!-- Stripe card -->
+        <div class="gw-card" id="gw-stripe" onclick="selectGateway('stripe')">
+          <div class="gw-brand-stripe">stripe</div>
+          <span class="gw-name">Stripe</span>
+          <span class="gw-desc">Global cards, Apple Pay, Google Pay</span>
+        </div>
+
+      </div>
+
+      <!-- Stripe Payment Element (shown only when Stripe selected) -->
+      <!-- Removed: Stripe now uses hosted Checkout page -->
+
+      <!-- Pay button -->
+      <button class="pay-btn" id="payBtn" onclick="handlePay()">
+        <span id="btnText">Select a gateway above</span>
+        <div class="spinner" id="spinner"></div>
+      </button>
+
+      <!-- Message -->
+      <div id="msg"></div>
+
+      <!-- Trust badges -->
+      <div class="trust-row">
+        <div class="trust-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+          </svg>
+          PCI DSS Compliant
+        </div>
+        <div class="trust-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+          </svg>
+          256-bit Encryption
+        </div>
+        <div class="trust-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
+          </svg>
+          No data stored
+        </div>
+      </div>
+
+    </div><!-- /card-body -->
+  </div><!-- /checkout-card -->
+</div><!-- /page-wrap -->
+
+<script>
+// ── State ─────────────────────────────────────────────────────
+let selectedAmount  = 0;
+let selectedGateway = "";   // "nae" | "stripe"
+
+// ── Amount selection ──────────────────────────────────────────
+function selectAmount(btn, value) {
+  document.querySelectorAll(".amt-btn").forEach(b => b.classList.remove("selected"));
+  btn.classList.add("selected");
+  document.getElementById("customAmt").value = "";
+  document.getElementById("customWrap").classList.remove("active");
+  selectedAmount = value;
+  updateBtn();
+}
+
+function onCustomAmount(input) {
+  const val = parseFloat(input.value) || 0;
+  document.querySelectorAll(".amt-btn").forEach(b => b.classList.remove("selected"));
+  selectedAmount = val;
+  document.getElementById("customWrap").classList.toggle("active", val >= 1);
+  updateBtn();
+}
+
+function onCustomFocus() {
+  document.querySelectorAll(".amt-btn").forEach(b => b.classList.remove("selected"));
+}
+
+function onCustomBlur() {
+  const input = document.getElementById("customAmt");
+  const val   = parseFloat(input.value) || 0;
+  if (val > 0 && val < 1) {
+    input.value = "1";
+    selectedAmount = 1;
+    document.getElementById("customWrap").classList.add("active");
+    updateBtn();
+  }
+}
+
+// ── Gateway selection ─────────────────────────────────────────
+function selectGateway(gw) {
+  selectedGateway = gw;
+  document.querySelectorAll(".gw-card").forEach(c => c.classList.remove("active"));
+  document.getElementById(`gw-${gw}`).classList.add("active");
+  clearMsg();
+  updateBtn();
+}
+
+// ── Button state ──────────────────────────────────────────────
+function updateBtn() {
+  const btn  = document.getElementById("payBtn");
+  const text = document.getElementById("btnText");
+
+  if (!selectedGateway) {
+    text.textContent = "Select a gateway above";
+    btn.disabled = true;
+    return;
+  }
+  if (!selectedAmount || selectedAmount < 1) {
+    text.textContent = "Select an amount (min $1)";
+    btn.disabled = true;
+    return;
+  }
+
+  const label = selectedGateway === "nae" ? "Pay with Network.ae" : "Pay with Stripe";
+  text.textContent = `${label} — $${formatAmt(selectedAmount)}`;
+  btn.disabled = false;
+}
+
+function formatAmt(v) {
+  return Number(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// ── Handle pay ────────────────────────────────────────────────
+async function handlePay() {
+  clearMsg();
+  const name  = document.getElementById("billingName").value.trim();
+  const email = document.getElementById("billingEmail").value.trim();
+
+  if (!name)  return showMsg("Please enter your full name.", "error");
+  if (!email || !email.includes("@")) return showMsg("Please enter a valid email address.", "error");
+  if (!selectedAmount || selectedAmount < 1) return showMsg("Minimum payment is $1.", "error");
+
+  if (selectedGateway === "nae")    await payWithNae(name, email);
+  if (selectedGateway === "stripe") await payWithStripe(name, email);
+}
+
+// ── Network.ae ────────────────────────────────────────────────
+async function payWithNae(name, email) {
+  setLoading(true);
+  try {
+    const ref = `NX-${Date.now()}`;
+    const res = await fetch("/api/create-payment", {
+      method : "POST",
+      headers: { "Content-Type": "application/json" },
+      body   : JSON.stringify({ amount: selectedAmount, currency: "USD", email, name, ref }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Network.ae payment failed.");
+    if (data.redirectUrl) {
+      window.location.href = data.redirectUrl;
+    } else {
+      throw new Error("No redirect URL from Network.ae.");
+    }
+  } catch (err) {
+    showMsg(err.message, "error");
+    setLoading(false);
+  }
+}
+
+// ── Stripe Checkout (redirects to Stripe's hosted page) ───────
+async function payWithStripe(name, email) {
+  setLoading(true);
+  try {
+    const ref = `NX-STR-${Date.now()}`;
+    const res = await fetch("/api/stripe/create-checkout-session", {
+      method : "POST",
+      headers: { "Content-Type": "application/json" },
+      body   : JSON.stringify({ amount: selectedAmount, currency: "usd", email, name, ref }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Could not create Stripe session.");
+    if (data.url) {
+      window.location.href = data.url;   // → stripe.com hosted checkout page
+    } else {
+      throw new Error("No Stripe checkout URL returned.");
+    }
+  } catch (err) {
+    showMsg(err.message, "error");
+    setLoading(false);
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────
+function setLoading(on) {
+  const btn  = document.getElementById("payBtn");
+  const spin = document.getElementById("spinner");
+  const text = document.getElementById("btnText");
+  btn.disabled       = on;
+  spin.style.display = on ? "block" : "none";
+  if (on) text.textContent = "Redirecting to secure payment…";
+  else    updateBtn();
+}
+
+function showMsg(msg, type) {
+  const el = document.getElementById("msg");
+  el.textContent = msg;
+  el.className   = type;
+}
+
+function clearMsg() {
+  const el = document.getElementById("msg");
+  el.textContent = "";
+  el.className   = "";
+}
+
+// Init
+updateBtn();
+</script>
+</body>
+</html>
